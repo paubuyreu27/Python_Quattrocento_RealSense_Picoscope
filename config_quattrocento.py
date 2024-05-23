@@ -1,0 +1,217 @@
+# python 3.8 or later
+
+# This is a configuration file for the OT Biolettronica Quattrocento device.
+# https://www.otbioelettronica.it/en/products/hardware/quattrocento
+
+# Variables set here will be compiled into a 40-byte packet
+# according to the protocol supplied by Bioelettronica (manufacturer).
+
+# Please consult the protocol to correctly set up the configuration bits.
+# Protocol: https://otbioelettronica.it/en/?preview=1&option=com_dropfiles&format=&task=frontfile.download&catid=41&id=70&Itemid=1000000000000
+
+# The resulting hexadecimal string can be used outside of this code.
+
+# -----------------------------------------------------------------------------
+
+# CRC library to compute the checksum at the end of configuration packet
+from crc import Calculator, Crc8
+import config
+
+if config.used_amp == 'QUATTROCENTO':
+
+    # Set number of channels (electrodes) you will use
+    # This number can be 96, 192, 288, 384
+    # The bits will be automatically set
+    NUMBER_OF_CHANNELS = 384
+
+    # Set sampling frequency you will use
+    # This value can be 512, 2048, 5120, 10240
+    # The bits will be automatically set
+    SAMPLING_FREQUENCY = config.sampling_frequency
+    if SAMPLING_FREQUENCY not in [512, 2048, 5120, 10240]:
+        raise ValueError('Frequency must be either 512, 2048, 5120 or 10240')
+
+    # ACQ_SETT
+    # Sampling frequency, number of channels,
+    # start/stop acquisition, start/stop recording
+    ACQ_SETT = list("10000001")
+
+    if NUMBER_OF_CHANNELS == 96:
+        ACQ_SETT[5:7] = ["0", "0"]
+    elif NUMBER_OF_CHANNELS == 192:
+        ACQ_SETT[5:7] = ["0", "1"]
+    elif NUMBER_OF_CHANNELS == 288:
+        ACQ_SETT[5:7] = ["1", "0"]
+    elif NUMBER_OF_CHANNELS == 384:
+        ACQ_SETT[5:7] = ["1", "1"]
+
+    if SAMPLING_FREQUENCY == 512:
+        ACQ_SETT[3:5] = ["0", "0"]
+    elif SAMPLING_FREQUENCY == 2048:
+        ACQ_SETT[3:5] = ["0", "1"]
+    elif SAMPLING_FREQUENCY == 5120:
+        ACQ_SETT[3:5] = ["1", "0"]
+    elif SAMPLING_FREQUENCY == 10240:
+        ACQ_SETT[3:5] = ["1", "1"]
+
+    ACQ_SETT = "".join(ACQ_SETT)
+
+    # AN_OUT_IN_SEL
+    # Select the input source and gain for the analog output
+    AN_OUT_IN_SEL = "00010000"
+
+    # AN_OUT_CH_SEL
+    # Select the channel for the analog output source
+    AN_OUT_CH_SEL = "00000000"
+
+    # INx_CONF0/1/2
+    # Configuration for the eight IN inputs: high pass filter,
+    # low pass filter, detection mode, muscle, side, sensor and adapter
+
+    # IN1_CONF
+    IN1_CONF0 = "00000000"
+    if 'IN1' in config.byte_config:
+        IN1_CONF1 = config.byte_config['IN1']['byte1']
+        IN1_CONF2 = config.byte_config['IN1']['byte2']
+    else:
+        IN1_CONF1 = "00000000"
+        IN1_CONF2 = "00000000"
+
+    # IN2_CONF
+    IN2_CONF0 = "00000000"
+    if 'IN2' in config.byte_config:
+        IN2_CONF1 = config.byte_config['IN2']['byte1']
+        IN2_CONF2 = config.byte_config['IN2']['byte2']
+    else:
+        IN2_CONF1 = "00000000"
+        IN2_CONF2 = "00000000"
+
+    # IN3_CONF
+    IN3_CONF0 = "00000000"
+    if 'IN3' in config.byte_config:
+        IN3_CONF1 = config.byte_config['IN3']['byte1']
+        IN3_CONF2 = config.byte_config['IN3']['byte2']
+    else:
+        IN3_CONF1 = "00000000"
+        IN3_CONF2 = "00000000"
+
+    # IN4_CONF
+    IN4_CONF0 = "00000000"
+    if 'IN4' in config.byte_config:
+        IN4_CONF1 = config.byte_config['IN4']['byte1']
+        IN4_CONF2 = config.byte_config['IN4']['byte2']
+    else:
+        IN4_CONF1 = "00000000"
+        IN4_CONF2 = "00000000"
+
+    # IN5_CONF
+    IN5_CONF0 = "00000000"
+    if 'IN5' in config.byte_config:
+        IN5_CONF1 = config.byte_config['IN5']['byte1']
+        IN5_CONF2 = config.byte_config['IN5']['byte2']
+    else:
+        IN5_CONF1 = "00000000"
+        IN5_CONF2 = "00000000"
+
+    # IN6_CONF
+    IN6_CONF0 = "00000000"
+    if 'IN6' in config.byte_config:
+        IN6_CONF1 = config.byte_config['IN6']['byte1']
+        IN6_CONF2 = config.byte_config['IN6']['byte2']
+    else:
+        IN6_CONF1 = "00000000"
+        IN6_CONF2 = "00000000"
+
+    # IN7_CONF
+    IN7_CONF0 = "00000000"
+    if 'IN7' in config.byte_config:
+        IN7_CONF1 = config.byte_config['IN7']['byte1']
+        IN7_CONF2 = config.byte_config['IN7']['byte2']
+    else:
+        IN7_CONF1 = "00000000"
+        IN7_CONF2 = "00000000"
+
+    # IN8_CONF
+    IN8_CONF0 = "00000000"
+    if 'IN8' in config.byte_config:
+        IN8_CONF1 = config.byte_config['IN8']['byte1']
+        IN8_CONF2 = config.byte_config['IN8']['byte2']
+    else:
+        IN8_CONF1 = "00000000"
+        IN8_CONF2 = "00000000"
+
+    # MULTIPLE_INx_CONF0/1/2
+    # Configuration for the four MULTIPLE IN inputs: high pass filter,
+    # low pass filter and detection mode, muscle, side, sensor and adapter
+
+    # MULTIPLE_IN1_CONF
+    MULTIPLE_IN1_CONF0 = "00000000"
+    if 'MULT_IN1' in config.byte_config:
+        MULTIPLE_IN1_CONF1 = config.byte_config['MULT_IN1']['byte1']
+        MULTIPLE_IN1_CONF2 = config.byte_config['MULT_IN1']['byte2']
+    else:
+        MULTIPLE_IN1_CONF1 = "00000000"
+        MULTIPLE_IN1_CONF2 = "00000000"
+
+    # MULTIPLE_IN2_CONF
+    MULTIPLE_IN2_CONF0 = "00000000"
+    if 'MULT_IN2' in config.byte_config:
+        MULTIPLE_IN2_CONF1 = config.byte_config['MULT_IN2']['byte1']
+        MULTIPLE_IN2_CONF2 = config.byte_config['MULT_IN2']['byte2']
+    else:
+        MULTIPLE_IN2_CONF1 = "00000000"
+        MULTIPLE_IN2_CONF2 = "00000000"
+
+    # MULTIPLE_IN3_CONF
+    MULTIPLE_IN3_CONF0 = "00000000"
+    if 'MULT_IN3' in config.byte_config:
+        MULTIPLE_IN3_CONF1 = config.byte_config['MULT_IN3']['byte1']
+        MULTIPLE_IN3_CONF2 = config.byte_config['MULT_IN3']['byte2']
+    else:
+        MULTIPLE_IN3_CONF1 = "00000000"
+        MULTIPLE_IN3_CONF2 = "00000000"
+
+    # MULTIPLE_IN4_CONF
+    MULTIPLE_IN4_CONF0 = "00000000"
+    if 'MULT_IN4' in config.byte_config:
+        MULTIPLE_IN4_CONF1 = config.byte_config['MULT_IN4']['byte1']
+        MULTIPLE_IN4_CONF2 = config.byte_config['MULT_IN4']['byte2']
+    else:
+        MULTIPLE_IN4_CONF1 = "00000000"
+        MULTIPLE_IN4_CONF2 = "00000000"
+
+    # Combine configuration bits together
+    acquisition_binary = \
+        ACQ_SETT + \
+        AN_OUT_IN_SEL + \
+        AN_OUT_CH_SEL + \
+        IN1_CONF0 + IN1_CONF1 + IN1_CONF2 + \
+        IN2_CONF0 + IN2_CONF1 + IN2_CONF2 + \
+        IN3_CONF0 + IN3_CONF1 + IN3_CONF2 + \
+        IN4_CONF0 + IN4_CONF1 + IN4_CONF2 + \
+        IN5_CONF0 + IN5_CONF1 + IN5_CONF2 + \
+        IN6_CONF0 + IN6_CONF1 + IN6_CONF2 + \
+        IN7_CONF0 + IN7_CONF1 + IN7_CONF2 + \
+        IN8_CONF0 + IN8_CONF1 + IN8_CONF2 + \
+        MULTIPLE_IN1_CONF0 + MULTIPLE_IN1_CONF1 + MULTIPLE_IN1_CONF2 + \
+        MULTIPLE_IN2_CONF0 + MULTIPLE_IN2_CONF1 + MULTIPLE_IN2_CONF2 + \
+        MULTIPLE_IN3_CONF0 + MULTIPLE_IN3_CONF1 + MULTIPLE_IN3_CONF2 + \
+        MULTIPLE_IN4_CONF0 + MULTIPLE_IN4_CONF1 + MULTIPLE_IN4_CONF2
+
+    # convert into hex
+    acquisition_hex = hex(int(acquisition_binary, 2))[2:]
+
+    # CRC
+    # Parity check using the CRC-8/MAXIM algorithm
+    calculator = Calculator(Crc8.MAXIM_DOW)
+    checksum = hex(calculator.checksum(bytes.fromhex(acquisition_hex)))[2:]
+
+    # This method puts everything together
+    def generate_command():
+        msg = acquisition_hex + checksum
+        return msg, NUMBER_OF_CHANNELS, SAMPLING_FREQUENCY
+
+
+if __name__ == "__main__":
+    print(generate_command()[0])
+
