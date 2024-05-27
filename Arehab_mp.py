@@ -1,4 +1,4 @@
-import multiprocessing as mproc
+import mp_script as mproc
 import pyrealsense2 as rs
 
 from realsense_utils import realsense_config, get_frame

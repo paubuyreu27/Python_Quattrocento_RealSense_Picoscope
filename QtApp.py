@@ -8,8 +8,8 @@ from PyQt5 import QtWidgets, QtCore
 import config
 import config_functions as cf
 import stream_data
-from Camera import Camera
-from PicoscopeClass import PicoscopeController
+from camera import Camera
+from picoscopeClass import PicoscopeController
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -105,6 +105,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.camera.create_video()
             else:
                 self.record_csv()
+                self.camera.landmarks_to_csv()
             self.update_recording_label()
             self.camera.recording = self.recording
             self.update_plot_data()
@@ -128,11 +129,6 @@ class MainWindow(QtWidgets.QMainWindow):
         df_rec.columns = self.all_channel_names
         df_rec.to_csv(self.record_file_path, index=False)
 
-        # with open(self.record_file_path, mode='w', newline='') as file:
-        #     writer = csv.writer(file)
-        #     for sample in self.rec_matrix[1:]:
-        #         writer.writerow(list(sample))
-        # file.close()
         self.rec_matrix = np.zeros((1, len(self.list_used_channels)))
         print('File Saved')
 
