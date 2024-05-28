@@ -23,7 +23,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Picoscope
         self.picoscope = PicoscopeController()
 
-        # Camera
         self.camera = Camera()
 
         # Conexión Quattrocento

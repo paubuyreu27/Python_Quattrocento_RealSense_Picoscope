@@ -1,4 +1,5 @@
 import os
+import cv2
 
 def get_channel_ranges():
     channel_ranges = {
@@ -152,6 +153,7 @@ def lpf_to_bits(lpf):
         binary_lpf = '11'
     return binary_lpf
 
+
 def mode_to_bits(mode):
     if mode == 'Monopolar':
         binary_mode = '00'
@@ -172,3 +174,35 @@ def get_available_filename(base_name, extension):
         if not os.path.exists(filename):
             return filename
         counter += 1
+def get_landmark_name(landmark_num):
+    lm_names = ['NOSE', 'LEFT_EYE_IN', 'LEFT_EYE', 'LEFT_EYE_OUT', 'RIGHT_EYE_IN', 'RIGTH_EYE', 'RIGHT_EYE_OUT',
+                'LEFT_EAR', 'RIGHT_EAR', 'MOUTH_LEFT', 'MOUTH_RIGHT', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', 'LEFT_ELBOW',
+                'RIGHT_ELBOW', 'LEFT_WRIST', 'RIGHT_WRIST', 'LEFT_PINKY', 'RIGHT_PINKY', 'LEFT_INDEX', 'RIGHT_INDEX',
+                'LEFT_THUMB', 'RIGHT_THUMB', 'LEFT_HIP', 'RIGHT_HIP', 'LEFT_KNEE', 'RIGHT_KNEE', 'LEFT_ANKLE', 'RIGHT_ANKLE',
+                'LEFT_HEEL', 'RIGHT_HEEL', 'LEFT_FOOT_INDEX', 'RIGHT_FOOT_INDEX']
+    return lm_names[landmark_num]
+
+
+def create_video():
+    # Check if output.avi already exists
+    file_exists = os.path.isfile("videos/video.avi")
+    if not file_exists:
+        filename = "videos/video.avi"
+        output = cv2.VideoWriter(
+            filename, cv2.VideoWriter_fourcc(*'mp4v'), 30, (640, 480))
+    else:
+        # Find an available filename
+        index = 1
+        while True:
+            filename = f"videos/video{index}.avi"
+            file_exists = os.path.isfile(filename)
+            if not file_exists:
+                output = cv2.VideoWriter(
+                    filename, cv2.VideoWriter_fourcc(*'mp4v'), 30, (640, 480))
+                break
+            index += 1
+    return output, filename
+
+
+if __name__ == '__main__':
+    pass
