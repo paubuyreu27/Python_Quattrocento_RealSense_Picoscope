@@ -1,9 +1,7 @@
 import multiprocessing as mproc
-import numpy as np
-import cv2
 
 
-class MpFrameProc(mproc.Process):
+class MpFrameProcess(mproc.Process):
 
     def __init__(self, color_queue, depth_queue, stop_queue, intrinsics):
         super().__init__()
@@ -12,16 +10,22 @@ class MpFrameProc(mproc.Process):
         self.color_queue = color_queue
         self.depth_queue = depth_queue
         self.stop_queue = stop_queue
-
         self.depth_intrin_dict = intrinsics
+        print('Queues are in secondary process')
+
 
     def run(self):
+        print('Before importing libraries')
         # 4. import libraries that use multiprocessing:
         import mediapipe as mp
+        import numpy as np
         import pandas as pd
         import config_functions as cf
         import pyrealsense2 as rs
+        import cv2
         n = 0
+
+        print('process started for real')
 
         # Create a pose estimator here
         mp_pose = mp.solutions.pose
@@ -55,7 +59,7 @@ class MpFrameProc(mproc.Process):
                     depth_image = self.depth_queue.get()
 
                     if color_image is None:  # Si recibe la señal de término, rompe el bucle
-                        print('Recording finalitzat')
+                        print('All frames processed')
                         self.stop_queue.put(True)
                         break
 
@@ -82,6 +86,8 @@ class MpFrameProc(mproc.Process):
                             x, y, z = rs.rs2_deproject_pixel_to_point(depth_intrin, [pos_x, pos_y],
                                                                       depth_image[pos_y, pos_x])
                             landmarks_list.append(np.array([x, y, z]))
+
+                            # landmarks_list.append(np.array([pos_x, pos_y, 34]))
 
                         landmarks_list = np.array(landmarks_list).flatten()
 
@@ -128,80 +134,3 @@ class MpFrameProc(mproc.Process):
             output.release()
         print('Video saved to ', video_file_path)
 
-
-def main():
-    from camera import Camera
-    import cv2
-    # inicilizar los queue y la pipeline de realsense
-
-    # realsense config
-    cam = Camera()
-    depth_intrin = cam.depth_intrin
-
-    depth_intrinsic_dict = {
-        'width': depth_intrin.width,
-        'height': depth_intrin.height,
-        'ppx': depth_intrin.ppx,
-        'ppy': depth_intrin.ppy,
-        'fx': depth_intrin.fx,
-        'fy': depth_intrin.fy,
-        'model': depth_intrin.model,
-        'coeffs': depth_intrin.coeffs
-    }
-
-    start_recording = False
-    end_recording = False
-    n = 0
-
-    # multiproc config
-    color_queue = mproc.Queue()
-    depth_queue = mproc.Queue()
-    stop_queue = mproc.Queue()
-    read_proc = MpFrameProc(color_queue=color_queue, depth_queue=depth_queue, stop_queue=stop_queue,
-                            intrinsics=depth_intrinsic_dict)
-
-    read_proc.start()  # Start the process here
-
-    while True:
-        cam.get_frame()
-        if start_recording:
-            if cam.color_image is not None:
-                color_queue.put(cam.color_image)
-                depth_queue.put(cam.depth_image)
-                n += 1
-
-        if end_recording:
-            color_image = None
-            depth_image = None
-            color_queue.put(color_image)
-            depth_queue.put(depth_image)
-            break
-
-        # Tecla R
-        if cv2.waitKey(1) == ord('r'):
-            if not start_recording:
-                start_recording = True
-                print('Recording...')
-
-            else:
-                start_recording = False
-                print('Not recording...')
-                end_recording = True
-
-        if cv2.waitKey(1) == ord('q'):
-            color_image = None
-            depth_image = None
-            color_queue.put(color_image)
-            depth_queue.put(depth_image)
-            break
-
-        if not stop_queue.empty():
-            break
-
-    read_proc.join()
-    print("Process finished")
-    cam.stop()
-
-
-if __name__ == '__main__':
-    main()

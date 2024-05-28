@@ -1,10 +1,11 @@
+import multiprocessing as mproc
 import pandas as pd
 import sys
-
 import numpy as np
 import pyqtgraph as pg
 from PyQt5 import QtWidgets, QtCore
-from multiprocess_qt import MultiprocessQt
+from mp_frame_process import MpFrameProcess
+from camera import Camera
 
 import config
 import config_functions as cf
@@ -20,8 +21,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.graphWidget = pg.PlotWidget()
         self.setCentralWidget(self.graphWidget)
 
-        # Picoscope
-        self.picoscope = PicoscopeController()
+
 
         # Conexión Quattrocento
         if config.used_amp == 'QUATTROCENTO':
@@ -80,11 +80,44 @@ class MainWindow(QtWidgets.QMainWindow):
             line = self.graphWidget.plot(self.x, self.y[:, i], pen=pen)  # Crea la línea de datos para cada canal
             self.data_lines.append(line)
 
+        # Camera initialization
+        self.cam = Camera()
+        depth_intrin = self.cam.depth_intrin
+
+        depth_intrinsic_dict = {
+            'width': depth_intrin.width,
+            'height': depth_intrin.height,
+            'ppx': depth_intrin.ppx,
+            'ppy': depth_intrin.ppy,
+            'fx': depth_intrin.fx,
+            'fy': depth_intrin.fy,
+            'model': depth_intrin.model,
+            'coeffs': depth_intrin.coeffs
+        }
+
+        self.start_recording = False
+        self.end_recording = False
+        self.stop_loop = False
+
+        # multiproc config
+        self.color_queue = mproc.Queue()
+        self.depth_queue = mproc.Queue()
+        self.stop_queue = mproc.Queue()
+        self.read_proc = MpFrameProcess(color_queue=self.color_queue, depth_queue=self.depth_queue,
+                                        stop_queue=self.stop_queue, intrinsics=depth_intrinsic_dict)
+
+        self.read_proc.start()  # Start the process here
+        print('Queues started')
+
+        # Picoscope
+        self.picoscope = PicoscopeController()
+
         # Timer + Intervalo para actualizar
         self.timer = QtCore.QTimer()
         # self.timer.setInterval(1) # Mirar que interval no sigui massa curt/llarg
         self.timer.timeout.connect(self.update_data)
         self.timer.start()
+        print('App started')
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Down:  # Flecha hacia abajo
@@ -95,14 +128,16 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.current_channel_index > 0:
                 self.current_channel_index -= 1
                 self.update_plot_channels()
-        if event.key() == QtCore.Qt.Key_R:  # Tecla "r"
+        elif event.key() == QtCore.Qt.Key_R:  # Tecla "r"
             if not self.recording:
                 self.picoscope.trigger_signal()
                 self.recording = True
+                self.start_recording = True
                 print('Started Recording')
             else:
+                self.end_recording = True
                 self.recording = False
-                self.record_csv()
+                self.start_recording = False
                 print('Stopped Recording')
             self.update_recording_label()
             self.update_data()
@@ -138,6 +173,22 @@ class MainWindow(QtWidgets.QMainWindow):
             self.recording_label.setStyleSheet("color: blue")
 
     def update_data(self):
+        # Camera update process
+        self.cam.get_frame()
+
+        if not self.stop_queue.empty():
+            self.stop_process()
+
+        if self.end_recording:
+            color_image = None
+            depth_image = None
+            self.color_queue.put(color_image)
+            self.depth_queue.put(depth_image)
+
+        if self.start_recording:
+            if self.cam.color_image is not None:
+                self.color_queue.put(self.cam.color_image)
+                self.depth_queue.put(self.cam.depth_image)
 
         # Plot data
         self.x = self.x[self.data_interval:]
@@ -162,8 +213,16 @@ class MainWindow(QtWidgets.QMainWindow):
         for i in range(self.num_plot_channels):
             self.data_lines[i].setData(self.x, self.y[:, i] - 20 * i)
 
-    def closeEvent(self, event):
+    def stop_process(self):
+        self.read_proc.join()
+        print("Process finished")
+        self.cam.stop()
+        self.stop_loop = True
+        self.record_csv()
 
+    def closeEvent(self, event):
+        self.read_proc.terminate()
+        print("Camera process terminated")
         # self.picoscope.close()  # Ensure the Picoscope is properly closed
         event.accept()
 

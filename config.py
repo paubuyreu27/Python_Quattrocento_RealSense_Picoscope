@@ -8,13 +8,13 @@ port = 23456
 # This value can be 512, 2048, 5120, 10240
 sampling_frequency = 2048
 
-samples_in_plot = 204  # 2041 --> aprox. 1 second
+samples_in_plot = 2041  # 2041 --> aprox. 1 second
 
 # POSSIBLE INPUTS (str):
 # 'IN1', 'IN2', 'IN3', ... , 'IN8',
 # 'MULT_IN1', 'MULT_IN2', ... , 'MULT_IN4',
 # 'AUX_IN1', 'AUX_IN2', ... , 'AUX_IN16'
-list_used_inputs = ['AUX_IN1', 'MULT_IN1', 'MULT_IN2']
+list_used_inputs = ['AUX_IN1', 'MULT_IN1']
 inputs_config, byte_config = cf.create_input_config(list_used_inputs)
 
 # CONFIG FOR USED INPUT

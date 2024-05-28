@@ -18,18 +18,18 @@ class PicoscopeController(QtCore.QObject):
 
         # Open the device
         self.status["openunit"] = ps.ps2000aOpenUnit(ctypes.byref(self.chandle), None)
-        try:
-            assert_pico_ok(self.status["openunit"])
-
-        except:
-            powerstate = self.status["openunit"]
-            if powerstate == 282:
-                self.status["ChangePowerSource"] = ps.ps2000aChangePowerSource(self.chandle, 282)
-            elif powerstate == 286:
-                self.status["ChangePowerSource"] = ps.ps2000aChangePowerSource(self.chandle, 286)
-            else:
-                raise
-            assert_pico_ok(self.status["ChangePowerSource"])
+        # try:
+        #     assert_pico_ok(self.status["openunit"])
+        #
+        # except:
+        #     powerstate = self.status["openunit"]
+        #     if powerstate == 282:
+        #         self.status["ChangePowerSource"] = ps.ps2000aChangePowerSource(self.chandle, 282)
+        #     elif powerstate == 286:
+        #         self.status["ChangePowerSource"] = ps.ps2000aChangePowerSource(self.chandle, 286)
+        #     else:
+        #         raise
+        #     assert_pico_ok(self.status["ChangePowerSource"])
 
         self.set_signal(self.pkToPk, self.frequency)
 
