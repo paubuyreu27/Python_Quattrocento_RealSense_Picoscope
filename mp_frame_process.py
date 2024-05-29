@@ -11,11 +11,10 @@ class MpFrameProcess(mproc.Process):
         self.depth_queue = depth_queue
         self.stop_queue = stop_queue
         self.depth_intrin_dict = intrinsics
-        print('Queues are in secondary process')
+        # print('Queues are in secondary process')
 
 
     def run(self):
-        print('Before importing libraries')
         # 4. import libraries that use multiprocessing:
         import mediapipe as mp
         import numpy as np
@@ -23,9 +22,10 @@ class MpFrameProcess(mproc.Process):
         import config_functions as cf
         import pyrealsense2 as rs
         import cv2
+
         n = 0
 
-        print('process started for real')
+        print('Frames proc. Started')
 
         # Create a pose estimator here
         mp_pose = mp.solutions.pose
@@ -50,13 +50,14 @@ class MpFrameProcess(mproc.Process):
 
         final_landmarks = None
 
-        output, video_file_path = cf.create_video()
-
         while True:
             try:
                 if not self.color_queue.empty():
                     color_image = self.color_queue.get()
                     depth_image = self.depth_queue.get()
+
+                    if n == 0:
+                        output, video_file_path = cf.create_video()
 
                     if color_image is None:  # Si recibe la señal de término, rompe el bucle
                         print('All frames processed')
@@ -112,7 +113,7 @@ class MpFrameProcess(mproc.Process):
             print('No landmarks to save')
             return
 
-        landmark_file_path = cf.get_available_filename("landmarks/landmark_csv", "csv")
+        landmark_file_path, number = cf.get_available_filename("landmarks/landmark_csv", "csv")
 
         # Convierte la lista de arrays en un DataFrame
         df = pd.DataFrame(final_landmarks)

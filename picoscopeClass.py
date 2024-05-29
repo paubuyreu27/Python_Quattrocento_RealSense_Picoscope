@@ -14,6 +14,7 @@ class PicoscopeController(QtCore.QObject):
         self.chandle = ctypes.c_int16()
         self.pkToPk = 2000000
         self.frequency = 1  # Hz
+        self.shots = 2
         self.running = True
 
         # Open the device
@@ -31,17 +32,17 @@ class PicoscopeController(QtCore.QObject):
         #         raise
         #     assert_pico_ok(self.status["ChangePowerSource"])
 
-        self.set_signal(self.pkToPk, self.frequency)
+        self.set_signal(self.pkToPk, self.frequency, self.shots)
 
-    def set_signal(self, pkToPk, frequency):
+    def set_signal(self, pkToPk, frequency, shots):
         wave_type = ctypes.c_int16(1)
         sweep_type = ctypes.c_int32(0)
         trigger_type = ctypes.c_int32(0)
-        trigger_source = ctypes.c_int32(4)        #trigger_source = ps.PS2000A_SIGGEN_SOFT_TRIG
-        shots = 2
+        trigger_source = ctypes.c_int32(4)        # trigger_source = ps.PS2000A_SIGGEN_SOFT_TRIG
         self.status = ps.ps2000aSetSigGenBuiltIn(
             self.chandle, 0, pkToPk, wave_type, frequency, frequency, 0, 1, sweep_type, 0, shots, 0, trigger_type, trigger_source, 1
         )
+        print('Picoscope ready for trigger')
         #assert_pico_ok(self.status["SetSigGenBuiltIn"])
 
     def trigger_signal(self):

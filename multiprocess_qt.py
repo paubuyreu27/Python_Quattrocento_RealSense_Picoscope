@@ -25,7 +25,7 @@ class MultiprocessQt(QtCore.QObject):
 
         self.start_recording = False
         self.end_recording = False
-        self.stop_loop = False
+        self.closed = False
 
         # multiproc config
         self.color_queue = mproc.Queue()
@@ -56,9 +56,15 @@ class MultiprocessQt(QtCore.QObject):
 
     def stop_process(self):
         self.read_proc.join()
-        print("Process finished")
+        print("Processes finished")
         self.cam.stop()
-        self.stop_loop = True
+        self.closed = True
+
+    def terminate_process(self):
+        self.read_proc.terminate()
+        print("Process terminated")
+        self.cam.stop()
+
 
 if __name__ == '__main__':
     mprocess = MultiprocessQt()

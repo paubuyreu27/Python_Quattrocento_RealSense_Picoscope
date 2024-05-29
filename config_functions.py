@@ -172,8 +172,9 @@ def get_available_filename(base_name, extension):
         else:
             filename = f"{base_name}{counter}.{extension}"
         if not os.path.exists(filename):
-            return filename
+            return filename, counter
         counter += 1
+
 def get_landmark_name(landmark_num):
     lm_names = ['NOSE', 'LEFT_EYE_IN', 'LEFT_EYE', 'LEFT_EYE_OUT', 'RIGHT_EYE_IN', 'RIGTH_EYE', 'RIGHT_EYE_OUT',
                 'LEFT_EAR', 'RIGHT_EAR', 'MOUTH_LEFT', 'MOUTH_RIGHT', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', 'LEFT_ELBOW',
@@ -202,6 +203,23 @@ def create_video():
                 break
             index += 1
     return output, filename
+
+
+def trim_matrix(matrix):
+    num_rows, num_columns = matrix.shape
+
+    # Iterate through the matrix in steps of 68
+    for i in range(0, num_rows, 68):
+        if matrix[i, 0] > -0.5:
+            threshold = i // 68 - 1  # Threshold package
+            if threshold < 0:
+                threshold = 0  # Ensure threshold is not negative
+            threshold_row = threshold * 68
+            trimmed_matrix = matrix[threshold_row:]
+            return trimmed_matrix, threshold
+    return matrix, 0
+
+
 
 
 if __name__ == '__main__':

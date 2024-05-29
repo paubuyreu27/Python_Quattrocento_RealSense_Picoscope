@@ -23,7 +23,8 @@ ip_address = '169.254.1.10'    # written on the QC's LCD
 port = 23456                    # can be changed in online interface
 
 # Conversion factor to convert byte values into mV
-CONVERSION_FACTOR = 0.000286
+# CONVERSION_FACTOR = 0.000286
+CONVERSION_FACTOR = 0.00015121873
 
 # Convert byte-array value to an integer value and apply two's complement
 def convert_bytes_to_int(bytes_value, bytes_in_sample):
