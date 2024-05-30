@@ -1,8 +1,12 @@
 import multiprocessing as mproc
+
+import numpy as np
 from PyQt5 import QtWidgets, QtCore, QtGui
 from mp_frame_process import MpFrameProcess
 from camera import Camera
 import cv2
+import config_functions as cf
+import pandas as pd
 
 
 class MultiprocessQt(QtCore.QObject):
@@ -54,8 +58,20 @@ class MultiprocessQt(QtCore.QObject):
                 self.color_queue.put(self.cam.color_image)
                 self.depth_queue.put(self.cam.depth_image)
 
+    def timestamps_csv(self):
+        if self.cam.timestamps_absolut is not None:
+            times = np.hstack((self.cam.timestamps_absolut, self.cam.timestamps_rest))
+            filename, number = cf.get_available_filename('camera_timestamps/timestamps', '.csv')
+            df_time = pd.DataFrame(times)  # Create DataFrame
+            df_time.columns = ["Time", "Time - Initial"]  # Set column names
+            df_time.to_csv(filename, index=False)  # Save to csv
+            print('Signals saved to ', filename)
+        else:
+            print('No timestamps to save')
+
     def stop_process(self):
         self.read_proc.join()
+        self.timestamps_csv()
         print("Processes finished")
         self.cam.stop()
         self.closed = True

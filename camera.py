@@ -12,7 +12,6 @@ import time
 # class Camera(QtCore.QObject):
 class Camera:
     def __init__(self):
-        # super().__init__()
         self.pipe = rs.pipeline()
         self.cfg = rs.config()
         self.cfg.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
@@ -27,6 +26,9 @@ class Camera:
         self.align = rs.align(align_to)
 
         self.previous_stamp = 0
+        self.initial_timestamp = None
+        self.timestamps_absolut = None
+        self.timestamps_rest = None
 
         self.depth_image = None
         self.depth_intrin = None
@@ -40,6 +42,15 @@ class Camera:
         frame = self.pipe.wait_for_frames()
         if frame.get_timestamp() != self.previous_stamp:
             self.previous_stamp = frame.get_timestamp()
+            if self.initial_timestamp is None:
+                self.initial_timestamp = frame.get_timestamp()
+
+            if self.timestamps_absolut is None:
+                self.timestamps_absolut = frame.get_timestamp()
+                self.timestamps_rest = frame.get_timestamp() - self.initial_timestamp
+            else:
+                self.timestamps_absolut = np.vstack((self.timestamps_absolut, frame.get_timestamp()))
+                self.timestamps_rest = np.vstack((self.timestamps_rest, frame.get_timestamp() - self.initial_timestamp))
 
             aligned_frames = self.align.process(frame)
             aligned_depth_frame = aligned_frames.get_depth_frame()  # aligned_depth_frame is a 640x480 depth image

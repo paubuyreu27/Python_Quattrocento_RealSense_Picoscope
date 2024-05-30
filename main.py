@@ -256,13 +256,6 @@ class MainWindow(QMainWindow):
             rec_signal_matrix_trim, self.threshold = cf.trim_matrix(self.rec_signal_matrix)
             print('After trim', rec_signal_matrix_trim.shape, 'Threshold', self.threshold)
 
-            df_rec = pd.DataFrame(self.rec_signal_matrix)  # Create DataFrame
-            df_rec.columns = self.all_channel_names  # Set column names
-            df_rec.to_csv(self.record_file_path, index=False)  # Save to csv
-            print('Signals saved to ', self.record_file_path)
-
-            self.record_file_path = "signal_recordings/trimtest.csv"
-
             df_rec = pd.DataFrame(rec_signal_matrix_trim)  # Create DataFrame
             df_rec.columns = self.all_channel_names  # Set column names
             df_rec.to_csv(self.record_file_path, index=False)  # Save to csv
