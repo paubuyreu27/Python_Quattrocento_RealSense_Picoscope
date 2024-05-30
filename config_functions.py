@@ -220,7 +220,5 @@ def trim_matrix(matrix):
     return matrix, 0
 
 
-
-
 if __name__ == '__main__':
     pass

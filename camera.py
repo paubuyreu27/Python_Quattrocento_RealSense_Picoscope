@@ -45,12 +45,15 @@ class Camera:
             if self.initial_timestamp is None:
                 self.initial_timestamp = frame.get_timestamp()
 
+            abs_timestamp = frame.get_timestamp()
+            rest_timestamp = frame.get_timestamp() - self.initial_timestamp
+
             if self.timestamps_absolut is None:
-                self.timestamps_absolut = frame.get_timestamp()
-                self.timestamps_rest = frame.get_timestamp() - self.initial_timestamp
+                self.timestamps_absolut = abs_timestamp
+                self.timestamps_rest = rest_timestamp
             else:
-                self.timestamps_absolut = np.vstack((self.timestamps_absolut, frame.get_timestamp()))
-                self.timestamps_rest = np.vstack((self.timestamps_rest, frame.get_timestamp() - self.initial_timestamp))
+                self.timestamps_absolut = np.vstack((self.timestamps_absolut, abs_timestamp))
+                self.timestamps_rest = np.vstack((self.timestamps_rest, rest_timestamp))
 
             aligned_frames = self.align.process(frame)
             aligned_depth_frame = aligned_frames.get_depth_frame()  # aligned_depth_frame is a 640x480 depth image
@@ -72,9 +75,6 @@ class Camera:
         self.pipe.stop()
         cv2.destroyAllWindows()
 
-
-if __name__ == "__main__":
-    pass
 
 
 

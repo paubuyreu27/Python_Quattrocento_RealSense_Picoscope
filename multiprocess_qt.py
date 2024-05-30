@@ -85,7 +85,7 @@ class MultiprocessQt(QtCore.QObject):
 if __name__ == '__main__':
     mprocess = MultiprocessQt()
 
-    while not mprocess.stop_loop:
+    while not mprocess.closed:
         mprocess.update_process()
 
         if cv2.waitKey(1) == ord('r'):
