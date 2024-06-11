@@ -3,19 +3,27 @@ import multiprocessing as mproc
 
 class MpFrameProcess(mproc.Process):
 
-    def __init__(self, color_queue, depth_queue, stop_queue, intrinsics):
-        super().__init__()
+    ###############################################################################################################
+    # Inicialització procés secundari
+    ###############################################################################################################
 
-        # Queues creation:
+    def __init__(self, color_queue, depth_queue, stop_queue, intrinsics, file_number):
+        super().__init__()
+        # Creació de les Queues
         self.color_queue = color_queue
         self.depth_queue = depth_queue
         self.stop_queue = stop_queue
-        self.depth_intrin_dict = intrinsics
-        # print('Queues are in secondary process')
 
+        self.depth_intrin_dict = intrinsics     # Rep intrinsics de la càmera
+        self.file_number = file_number    # Nombre de registre
+
+    ###############################################################################################################
+    # Procés secundari
+    ###############################################################################################################
 
     def run(self):
-        # 4. import libraries that use multiprocessing:
+
+        # Biblioteques necessàries
         import mediapipe as mp
         import numpy as np
         import pandas as pd
@@ -23,20 +31,21 @@ class MpFrameProcess(mproc.Process):
         import pyrealsense2 as rs
         import cv2
 
-        n = 0
-
+        n = 0   # Comptador de fotogrames processats
         print('Frames proc. Started')
 
-        # Create a pose estimator here
+        # Creació del detector de posicions
         mp_pose = mp.solutions.pose
         pose = mp_pose.Pose(
             min_tracking_confidence=0.5,
             min_detection_confidence=0.5,
             smooth_landmarks=False,
+            static_image_mode=False
         )
         mp_drawing = mp.solutions.drawing_utils
         mp_drawing_styles = mp.solutions.drawing_styles
 
+        # Creació objete intrinsics
         depth_intrin = rs.pyrealsense2.intrinsics()
 
         depth_intrin.width = self.depth_intrin_dict['width']
@@ -48,8 +57,10 @@ class MpFrameProcess(mproc.Process):
         depth_intrin.model = self.depth_intrin_dict['model']
         depth_intrin.coeffs = self.depth_intrin_dict['coeffs']
 
-        final_landmarks = None
 
+        final_landmarks = None # Array on s'emmagatemaran les posicions del punts de referència
+
+        # Bucle del procés secundari
         while True:
             try:
                 if not self.color_queue.empty():
@@ -57,7 +68,7 @@ class MpFrameProcess(mproc.Process):
                     depth_image = self.depth_queue.get()
 
                     if n == 0:
-                        output, video_file_path = cf.create_video()
+                        output, video_file_path = cf.create_video(self.file_number)
 
                     if color_image is None:  # Si recibe la señal de término, rompe el bucle
                         print('All frames processed')
@@ -115,10 +126,10 @@ class MpFrameProcess(mproc.Process):
 
         landmark_file_path, number = cf.get_available_filename("landmarks/landmark_csv", "csv")
 
-        # Convierte la lista de arrays en un DataFrame
+        # Forma un DataFrame
         df = pd.DataFrame(final_landmarks)
 
-        # Crear nombres de columna dinámicamente
+        # Assigna noms de columna
         num_landmarks = len(final_landmarks[0]) // 3
         column_names = []
         for i in range(num_landmarks):
@@ -127,11 +138,12 @@ class MpFrameProcess(mproc.Process):
 
         df.columns = column_names
 
-        # Guarda el DataFrame como un archivo CSV
+        # Guarda el DataFrame como un arxiu CSV
         df.to_csv(landmark_file_path, index=False)
         print('Landmarks saved to ', landmark_file_path)
 
+        # Guarda el vídeo gravat
         if output:
             output.release()
-        print('Video saved to ', video_file_path)
+            print('Video saved to ', video_file_path)
 

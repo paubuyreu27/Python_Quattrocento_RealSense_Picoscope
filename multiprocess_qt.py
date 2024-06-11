@@ -10,7 +10,7 @@ import pandas as pd
 
 
 class MultiprocessQt(QtCore.QObject):
-    def __init__(self):
+    def __init__(self, file_number):
         super().__init__()
 
         self.cam = Camera()
@@ -31,12 +31,17 @@ class MultiprocessQt(QtCore.QObject):
         self.end_recording = False
         self.closed = False
 
+        self.timestamps_absolut = None
+        self.timestamps_rest = None
+        self.file_number = file_number
+
         # multiproc config
         self.color_queue = mproc.Queue()
         self.depth_queue = mproc.Queue()
         self.stop_queue = mproc.Queue()
         self.read_proc = MpFrameProcess(color_queue=self.color_queue, depth_queue=self.depth_queue,
-                                        stop_queue=self.stop_queue, intrinsics=depth_intrinsic_dict)
+                                        stop_queue=self.stop_queue, intrinsics=depth_intrinsic_dict,
+                                        file_number=self.file_number)
 
         self.read_proc.start()  # Start the process here
         print('Queues started')
@@ -57,15 +62,25 @@ class MultiprocessQt(QtCore.QObject):
             if self.cam.color_image is not None:
                 self.color_queue.put(self.cam.color_image)
                 self.depth_queue.put(self.cam.depth_image)
+                self.store_timestamps()
+
+    def store_timestamps(self):
+        if self.timestamps_absolut is None:
+            self.timestamps_absolut = self.cam.abs_timestamp
+            self.timestamps_rest = self.cam.rest_timestamp
+        else:
+            self.timestamps_absolut = np.vstack((self.timestamps_absolut, self.cam.abs_timestamp))
+            self.timestamps_rest = np.vstack((self.timestamps_rest, self.cam.rest_timestamp))
 
     def timestamps_csv(self):
-        if self.cam.timestamps_absolut is not None:
-            times = np.hstack((self.cam.timestamps_absolut, self.cam.timestamps_rest))
-            filename, number = cf.get_available_filename('camera_timestamps/timestamps', '.csv')
+        if self.timestamps_absolut is not None:
+            times = np.hstack((self.timestamps_absolut, self.timestamps_rest))
+            filename = cf.get_number_filename('camera_timestamps/timestamps', '.csv',
+                                              self.file_number)
             df_time = pd.DataFrame(times)  # Create DataFrame
             df_time.columns = ["Time", "Time - Initial"]  # Set column names
             df_time.to_csv(filename, index=False)  # Save to csv
-            print('Signals saved to ', filename)
+            print('Timestamps saved to ', filename)
         else:
             print('No timestamps to save')
 

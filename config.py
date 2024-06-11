@@ -11,7 +11,23 @@ port = 23456
 # SAMPLING FREQUENCY
 sampling_frequency = 2048   # This value can be 512, 2048, 5120, 10240
 
+
+#############################################################################
+# PLOT OPTIONS                                                              #
+#############################################################################
+
+data_interval = 68   # Number of samples between camera frames --> 68 is highly recommended
 samples_in_plot = 2041  # 2041 --> aprox. 1 second
+max_channels_to_plot = 8
+arbitrary_distance_plot_channels = 2# Forced distance between plots (mV)
+
+#############################################################################
+# PICOSCOPE OPTIONS                                                         #
+#############################################################################
+
+picoscope_shots = 100          # SHOTS FOR GEN. SQUARE SIGNAL
+picoscope_frequency = 1         # FREQ. OF GEN. SIGNAL (HZ)
+picoscope_pkToPk = 2000000      # micro-V
 
 #############################################################################
 # INPUT SELECTION                                                           #
@@ -23,10 +39,9 @@ samples_in_plot = 2041  # 2041 --> aprox. 1 second
 # 'AUX_IN1', 'AUX_IN2', ... , 'AUX_IN16'
 
 picoscope_input = ['AUX_IN1']   # USE AUXILIAR INPUT
-list_used_inputs = ['MULT_IN1', 'MULT_IN2']
+list_used_inputs = []
 
 list_used_inputs = picoscope_input + list_used_inputs
-
 inputs_config, byte_config = cf.create_input_config(list_used_inputs)
 
 #############################################################################
@@ -35,13 +50,13 @@ inputs_config, byte_config = cf.create_input_config(list_used_inputs)
 #############################################################################
 
 # First input configuration
-used_input = 'MULT_IN1'  # Input to configure --> Copy string from list of used inputs
-sensor = 13  # Sensor used: see list in pdf.  Valid from 0 to 23
-adapter = 4  # Adapter used: see list in pdf.  Valid from 0 to 6
-high_pass_filter = 10  # High pass filter used. To choose between [0.7, 10, 100, 200] Hz
-low_pass_filter = 500  # Low pass filter used. To choose between [130, 500, 900, 4400] Hz
-mode = 'Monopolar'  # Mode used. String to choose between ['Monopolar', 'Differential', 'Bipolar']
-cf.input_config(inputs_config, used_input, sensor, adapter, high_pass_filter, low_pass_filter, mode)
+# used_input = 'MULT_IN1'  # Input to configure --> Copy string from list of used inputs
+# sensor = 13  # Sensor used: see list in pdf.  Valid from 0 to 23
+# adapter = 4  # Adapter used: see list in pdf.  Valid from 0 to 6
+# high_pass_filter = 10  # High pass filter used. To choose between [0.7, 10, 100, 200] Hz
+# low_pass_filter = 500  # Low pass filter used. To choose between [130, 500, 900, 4400] Hz
+# mode = 'Monopolar'  # Mode used. String to choose between ['Monopolar', 'Differential', 'Bipolar']
+# cf.input_config(inputs_config, used_input, sensor, adapter, high_pass_filter, low_pass_filter, mode)
 
 # Second input configuration (comment all section if only one input configuration is wanted)
 # used_input = 'IN1'  # Input to configure --> Copy string from list of used inputs

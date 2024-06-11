@@ -14,17 +14,20 @@
 # -----------------------------------------------------------------------------
 
 import socket
+
+import config
 import config_quattrocento
 import signal
 import struct
 
 # Network settings
-ip_address = '169.254.1.10'    # written on the QC's LCD
-port = 23456                    # can be changed in online interface
+ip_address = config.ip_address    # written on the QC's LCD
+port = config.port                # can be changed in online interface
 
 # Conversion factor to convert byte values into mV
 # CONVERSION_FACTOR = 0.000286
 CONVERSION_FACTOR = 0.00015121873
+
 
 # Convert byte-array value to an integer value and apply two's complement
 def convert_bytes_to_int(bytes_value, bytes_in_sample):
@@ -155,7 +158,7 @@ def sigint_handler(signum, frame):
 # Read EMG Signal
 # Input: socket connected to Quattrocento, acquisition parameters
 # Output: array of signals from electrodes
-def read_emg_signal(connection, number_of_channels, bytes_in_sample, output_milli_volts=True):
+def read_signal(connection, number_of_channels, bytes_in_sample, output_milli_volts=True):
     # 16 zero channels + 8 accessory channels
     number_of_all_channels = number_of_channels + 16 + 8
     buffer_size = number_of_all_channels * bytes_in_sample
@@ -183,8 +186,8 @@ if __name__ == "__main__":
 
     # while True:
     for i in range(4096):
-        print(read_emg_signal(connection,
-                              number_of_channels,
-                              bytes_in_sample,
-                              output_milli_volts=True))
+        print(read_signal(connection,
+                          number_of_channels,
+                          bytes_in_sample,
+                          output_milli_volts=True))
 

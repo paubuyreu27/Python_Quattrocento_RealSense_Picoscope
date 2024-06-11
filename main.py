@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
                                                                             "csv")
 
         # Multiprocessing
-        self.cam = MultiprocessQt()
+        self.cam = MultiprocessQt(self.file_number)
 
         # Picoscope
         self.picoscope = PicoscopeController()
@@ -97,14 +97,14 @@ class MainWindow(QMainWindow):
         self.all_channel_names = [cf.get_channel_name(channel) for channel in self.list_used_channels]
 
         # Sample to graph in each iteration
-        self.data_interval = 68
+        self.data_interval = config.data_interval
 
         ###############################################################################################################
         # Select channels to plot (Initialization)
         ###############################################################################################################
 
         # Select number of channels to plot
-        max_num_channels_plot = 8
+        max_num_channels_plot = config.max_channels_to_plot
         self.current_channel_index = 0
         if len(self.list_used_channels) < max_num_channels_plot:
             self.num_plot_channels = len(self.list_used_channels)
@@ -171,10 +171,10 @@ class MainWindow(QMainWindow):
         self.y = self.y[self.data_interval:]
 
         for i in range(self.data_interval):
-            emg_data_frame = np.array(stream_data.read_emg_signal(self.connection,
-                                                                  self.number_of_channels,
-                                                                  self.bytes_in_sample,
-                                                                  output_milli_volts=True))
+            emg_data_frame = np.array(stream_data.read_signal(self.connection,
+                                                              self.number_of_channels,
+                                                              self.bytes_in_sample,
+                                                              output_milli_volts=True))
             data_matrix.append(emg_data_frame)
         interval_matrix = np.vstack(data_matrix)
 
@@ -182,7 +182,7 @@ class MainWindow(QMainWindow):
                                                                                self.current_channel_index +
                                                                                self.num_plot_channels]]))
         for i in range(self.num_plot_channels):
-            self.data_lines[i].setData(self.x, self.y[:, i] - 20 * i)
+            self.data_lines[i].setData(self.x, self.y[:, i] - config.arbitrary_distance_plot_channels * i)
 
         # Save interval if recording
         if self.signal_recording:
@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
 
     # Change y-axis ticks
     def update_y_axis_labels(self):
-        ticks = [(i * -20, name) for i, name in enumerate(self.channel_names)]
+        ticks = [(i * -config.arbitrary_distance_plot_channels, name) for i, name in enumerate(self.channel_names)]
         ax = self.plot_widget.getAxis('left')
         ax.setTicks([ticks])
 
@@ -253,7 +253,7 @@ class MainWindow(QMainWindow):
     def record_signal_csv(self):
         if self.rec_signal_matrix is not None:
             print('Before trim', self.rec_signal_matrix.shape)
-            rec_signal_matrix_trim, self.threshold = cf.trim_matrix(self.rec_signal_matrix)
+            rec_signal_matrix_trim, self.threshold = cf.trim_matrix(self.rec_signal_matrix, self.data_interval)
             print('After trim', rec_signal_matrix_trim.shape, 'Threshold', self.threshold)
 
             df_rec = pd.DataFrame(rec_signal_matrix_trim)  # Create DataFrame

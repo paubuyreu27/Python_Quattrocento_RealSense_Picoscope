@@ -1,6 +1,7 @@
 import numpy as np
 from PyQt5 import QtWidgets, QtCore, QtGui
 import ctypes
+import config
 from picosdk.ps2000a import ps2000a as ps
 from picosdk.functions import assert_pico_ok
 import keyboard
@@ -12,9 +13,9 @@ class PicoscopeController(QtCore.QObject):
         super().__init__()
         self.status = {}
         self.chandle = ctypes.c_int16()
-        self.pkToPk = 2000000
-        self.frequency = 1  # Hz
-        self.shots = 2
+        self.pkToPk = config.picoscope_pkToPk
+        self.frequency = config.picoscope_frequency
+        self.shots = config.picoscope_shots
         self.running = True
 
         # Open the device

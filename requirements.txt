@@ -1,0 +1,11 @@
+pandas~=2.0.3
+numpy~=1.24.4
+pyqtgraph~=0.13.3
+PyQt5~=5.15.10
+pyrealsense2~=2.55.1.6486
+opencv-python~=4.9.0.80
+mediapipe~=0.10.11
+keyboard~=0.13.5
+picosdk~=1.0
+crc~=7.0.0
+setuptools~=68.2.0

@@ -1,12 +1,6 @@
 import pyrealsense2 as rs
 import numpy as np
 import cv2
-from PyQt5 import QtWidgets, QtCore, QtGui
-import config_functions as cf
-import mediapipe as mp
-import pandas as pd
-import keyboard
-import time
 
 
 # class Camera(QtCore.QObject):
@@ -27,8 +21,8 @@ class Camera:
 
         self.previous_stamp = 0
         self.initial_timestamp = None
-        self.timestamps_absolut = None
-        self.timestamps_rest = None
+        self.abs_timestamp = None
+        self.rest_timestamp = None
 
         self.depth_image = None
         self.depth_intrin = None
@@ -45,15 +39,8 @@ class Camera:
             if self.initial_timestamp is None:
                 self.initial_timestamp = frame.get_timestamp()
 
-            abs_timestamp = frame.get_timestamp()
-            rest_timestamp = frame.get_timestamp() - self.initial_timestamp
-
-            if self.timestamps_absolut is None:
-                self.timestamps_absolut = abs_timestamp
-                self.timestamps_rest = rest_timestamp
-            else:
-                self.timestamps_absolut = np.vstack((self.timestamps_absolut, abs_timestamp))
-                self.timestamps_rest = np.vstack((self.timestamps_rest, rest_timestamp))
+            self.abs_timestamp = frame.get_timestamp()
+            self.rest_timestamp = frame.get_timestamp() - self.initial_timestamp
 
             aligned_frames = self.align.process(frame)
             aligned_depth_frame = aligned_frames.get_depth_frame()  # aligned_depth_frame is a 640x480 depth image

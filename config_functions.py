@@ -175,6 +175,16 @@ def get_available_filename(base_name, extension):
             return filename, counter
         counter += 1
 
+
+def get_number_filename(base_name, extension, number):
+    if number == 0:
+        filename = f"{base_name}.{extension}"
+        return filename
+    else:
+        filename = f"{base_name}{number}.{extension}"
+        return filename
+
+
 def get_landmark_name(landmark_num):
     lm_names = ['NOSE', 'LEFT_EYE_IN', 'LEFT_EYE', 'LEFT_EYE_OUT', 'RIGHT_EYE_IN', 'RIGTH_EYE', 'RIGHT_EYE_OUT',
                 'LEFT_EAR', 'RIGHT_EAR', 'MOUTH_LEFT', 'MOUTH_RIGHT', 'LEFT_SHOULDER', 'RIGHT_SHOULDER', 'LEFT_ELBOW',
@@ -184,37 +194,35 @@ def get_landmark_name(landmark_num):
     return lm_names[landmark_num]
 
 
-def create_video():
+def create_video(number):
     # Check if output.avi already exists
-    file_exists = os.path.isfile("videos/video.avi")
-    if not file_exists:
+    # file_exists = os.path.isfile("videos/video.avi")
+    # if not file_exists:
+    #     filename = "videos/video.avi"
+    #     output = cv2.VideoWriter(
+    #         filename, cv2.VideoWriter_fourcc(*'mp4v'), 30, (640, 480))
+    if number == 0:
         filename = "videos/video.avi"
         output = cv2.VideoWriter(
             filename, cv2.VideoWriter_fourcc(*'mp4v'), 30, (640, 480))
     else:
-        # Find an available filename
-        index = 1
-        while True:
-            filename = f"videos/video{index}.avi"
-            file_exists = os.path.isfile(filename)
-            if not file_exists:
-                output = cv2.VideoWriter(
-                    filename, cv2.VideoWriter_fourcc(*'mp4v'), 30, (640, 480))
-                break
-            index += 1
+        filename = f"videos/video{number}.avi"
+        output = cv2.VideoWriter(
+            filename, cv2.VideoWriter_fourcc(*'mp4v'), 30, (640, 480))
+
     return output, filename
 
 
-def trim_matrix(matrix):
+def trim_matrix(matrix, data_interval):
     num_rows, num_columns = matrix.shape
 
     # Iterate through the matrix in steps of 68
-    for i in range(0, num_rows, 68):
+    for i in range(0, num_rows, data_interval):
         if matrix[i, 0] > -0.5:
-            threshold = i // 68 - 1  # Threshold package
+            threshold = i // data_interval - 1  # Threshold package
             if threshold < 0:
                 threshold = 0  # Ensure threshold is not negative
-            threshold_row = threshold * 68
+            threshold_row = threshold * data_interval
             trimmed_matrix = matrix[threshold_row:]
             return trimmed_matrix, threshold
     return matrix, 0

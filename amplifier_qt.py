@@ -4,7 +4,6 @@ import sys
 import numpy as np
 import pyqtgraph as pg
 from PyQt5 import QtWidgets, QtCore
-from multiprocess_qt import MultiprocessQt
 
 import config
 import config_functions as cf
@@ -144,10 +143,10 @@ class MainWindow(QtWidgets.QMainWindow):
         data_matrix = []
 
         for i in range(self.data_interval):
-            emg_data_frame = np.array(stream_data.read_emg_signal(self.connection,
-                                                                  self.number_of_channels,
-                                                                  self.bytes_in_sample,
-                                                                  output_milli_volts=True))
+            emg_data_frame = np.array(stream_data.read_signal(self.connection,
+                                                              self.number_of_channels,
+                                                              self.bytes_in_sample,
+                                                              output_milli_volts=True))
             data_matrix.append(emg_data_frame)
 
         final_matrix = np.vstack(data_matrix)
